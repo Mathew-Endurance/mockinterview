@@ -1,9 +1,9 @@
 {
-  "/_not-found/page": "/_not-found",
   "/api/vapi/generate/route": "/api/vapi/generate",
   "/favicon.ico/route": "/favicon.ico",
-  "/(root)/interview/page": "/interview",
+  "/_not-found/page": "/_not-found",
   "/(auth)/sign-in/page": "/sign-in",
-  "/(root)/page": "/",
-  "/(auth)/sign-up/page": "/sign-up"
+  "/(auth)/sign-up/page": "/sign-up",
+  "/(root)/interview/page": "/interview",
+  "/(root)/page": "/"
 }
