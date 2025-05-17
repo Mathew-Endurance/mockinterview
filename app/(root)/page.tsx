@@ -2,14 +2,25 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import { dummyInterviews } from "../constants";
 import InterviewCard from "@/components/InterviewCard";
+import { getCurrentUser } from "@/lib/actions/auth.action";
+import { getInterviews } from "@/lib/actions/interview.actions";
+import type { Interview } from "@/app/types";
+import { redirect } from "next/navigation";
 
-const HomePage = () => {
+const HomePage = async () => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/sign-in");
+  }
+
+  const interviews: Interview[] = await getInterviews(user.id);
+
   return (
     <>
       <section>
-        <div className="card-cta ">
+        <div className="card-cta">
           <div className="flex flex-col gap-6 max-w-lg">
             <h2>Get Interview-Ready with AI-Powered Practice & Feedback</h2>
             <p className="text-lg">
@@ -28,27 +39,29 @@ const HomePage = () => {
           />
         </div>
       </section>
+
       {/* interview section */}
       <section className="flex flex-col gap-6 mt-8">
-        <h2>Your Interview</h2>
-
+        <h2>Your Interviews</h2>
         <div className="interviews-section">
-          {dummyInterviews.map((interview) => {
-            return <InterviewCard {...interview} key={interview?.id} />;
-          })}
-          {/* <p>you haven&apos;t taken any interview yet</p> */}
+          {interviews.length > 0 ? (
+            interviews.map((interview) => (
+              <InterviewCard
+                key={interview.id}
+                interviewId={interview.id}
+                role={interview.role}
+                type={interview.type}
+                techstack={interview.techstack}
+                createdAt={interview.createdAt}
+              />
+            ))
+          ) : (
+            <p className="text-center w-full text-gray-500">
+              You haven&apos;t taken any interviews yet. Start one now!
+            </p>
+          )}
         </div>
       </section>
-
-      <div className="flex flex-col mt-8">
-        <h2>Take an Interview</h2>
-        <div className="interviews-section">
-          {dummyInterviews.map((interview) => {
-            return <InterviewCard {...interview} key={interview?.id} />;
-          })}
-          {/* <p>There are no interviews available</p> */}
-        </div>
-      </div>
     </>
   );
 };

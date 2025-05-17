@@ -8,9 +8,20 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { type, role, level, techstack, amount, userid } = await request.json();
-
   try {
+    console.log("Starting interview generation...");
+    const { type, role, level, techstack, amount, userid } =
+      await request.json();
+    console.log("Received request data:", {
+      type,
+      role,
+      level,
+      techstack,
+      amount,
+      userid,
+    });
+
+    console.log("Generating interview questions...");
     const { text: questions } = await generateText({
       model: google("gemini-2.0-flash-001"),
       prompt: `Prepare questions for a job interview.
@@ -27,23 +38,46 @@ export async function POST(request: Request) {
         Thank you! <3
     `,
     });
+
+    console.log("Questions generated successfully");
+    console.log("Raw questions text:", questions);
+
+    const parsedQuestions = JSON.parse(questions);
+    console.log("Parsed questions:", parsedQuestions);
+
     const interview = {
       role: role,
       type: type,
       level: level,
       techstack: techstack.split(","),
-      questions: JSON.parse(questions),
+      questions: parsedQuestions,
       userId: userid,
       finalized: true,
       coverImage: getRandomInterviewCover(),
       createdAt: new Date().toISOString(),
     };
 
-    await db.collection("interviews").add(interview);
-
-    return Response.json({ success: true }, { status: 200 });
+    console.log("Attempting to save interview to Firestore:", interview);
+    try {
+      const docRef = await db.collection("interviews").add(interview);
+      console.log("Interview saved successfully with ID:", docRef.id);
+      return Response.json(
+        { success: true, interviewId: docRef.id },
+        { status: 200 }
+      );
+    } catch (firestoreError) {
+      console.error("Firestore error:", firestoreError);
+      throw firestoreError;
+    }
   } catch (error) {
-    console.error("Error:", error);
-    return Response.json({ success: false, error: error }, { status: 500 });
+    console.error("Error in interview generation:", error);
+    return Response.json(
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      },
+      { status: 500 }
+    );
   }
 }
